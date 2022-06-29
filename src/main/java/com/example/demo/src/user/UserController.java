@@ -36,6 +36,25 @@ public class UserController {
 
 
 
+
+    /**
+     *  조회 API
+     * [GET] /users/: userIdx
+
+     */
+    @ResponseBody
+    @GetMapping("/{userIdx}") // (GET) 127.0.0.1:9000/users/:userIdx
+    public BaseResponse<GetUserRes> getUserByIdx(@PathVariable("userIdx")int userIdx) {
+        try{
+
+            GetUserRes getUsersRes = userProvider.getUsersByIdx(userIdx);
+            return new BaseResponse<>(getUsersRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
     /**
      * 회원 조회 API
      * [GET] /users
@@ -63,17 +82,7 @@ public class UserController {
         }
     }
 
-    @ResponseBody
-    @GetMapping("/{userIdx}") // (GET) 127.0.0.1:9000/users/:userIdx
-    public BaseResponse<GetUserRes> getUserByIdx(@PathVariable("userIdx")int userIdx) {
-        try{
 
-            GetUserRes getUsersRes = userProvider.getUsersByIdx(userIdx);
-            return new BaseResponse<>(getUsersRes);
-        } catch(BaseException exception){
-            return new BaseResponse<>((exception.getStatus()));
-        }
-    }
 
     /**
      * 회원가입 API
