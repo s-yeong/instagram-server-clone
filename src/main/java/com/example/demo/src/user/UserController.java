@@ -1,7 +1,7 @@
 package com.example.demo.src.user;
 
-import com.example.demo.config.BaseException;
-import com.example.demo.config.BaseResponse;
+import com.example.demo.src.user.config.BaseException;
+import com.example.demo.src.user.config.BaseResponse;
 import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
 import org.slf4j.Logger;
@@ -9,8 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import static com.example.demo.config.BaseResponseStatus.POST_USERS_EMPTY_EMAIL;
-import static com.example.demo.config.BaseResponseStatus.POST_USERS_INVALID_EMAIL;
+import static com.example.demo.src.user.config.BaseResponseStatus.*;
 import static com.example.demo.utils.ValidationRegex.isRegexEmail;
 
 @RestController
@@ -34,25 +33,28 @@ public class UserController {
         this.jwtService = jwtService;
     }
 
-
-
-
     /**
-     *  조회 API
-     * [GET] /users/: userIdx
-
+     * 유저 피드 조회 API
+     * [GET] /users/:userIdx
+     * @return BaseResponse<GetUserFeedRes>
      */
+
     @ResponseBody
-    @GetMapping("/{userIdx}") // (GET) 127.0.0.1:9000/users/:userIdx
-    public BaseResponse<GetUserRes> getUserByIdx(@PathVariable("userIdx")int userIdx) {
+    @GetMapping("/{userIdx}") // (GET) 127.0.0.1:9000/users
+    public BaseResponse<GetUserFeedRes> getUserFeed(@PathVariable("userIdx") int userIdx) {
+
+
         try{
 
-            GetUserRes getUsersRes = userProvider.getUsersByIdx(userIdx);
-            return new BaseResponse<>(getUsersRes);
+            GetUserFeedRes getUserFeedRes = userProvider.retrieveUserFeed(userIdx, userIdx);
+            return new BaseResponse<>(getUserFeedRes);
+
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+
+
 
 
     /**
@@ -62,7 +64,7 @@ public class UserController {
      * [GET] /users? Email=
      * @return BaseResponse<GetUserRes>
      */
-    //Query String
+    /*//Query String
     @ResponseBody
     @GetMapping("") // (GET) 127.0.0.1:9000/users
     public BaseResponse<GetUserRes> getUsers(@RequestParam(required = true) String Email) {
@@ -80,7 +82,7 @@ public class UserController {
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
-    }
+    }*/
 
 
 

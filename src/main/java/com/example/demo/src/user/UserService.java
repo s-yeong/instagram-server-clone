@@ -1,7 +1,7 @@
 package com.example.demo.src.user;
 
 
-import com.example.demo.config.BaseException;
+import com.example.demo.src.user.config.BaseException;
 
 import com.example.demo.src.user.model.PatchUserReq;
 import com.example.demo.src.user.model.PostUserReq;
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static com.example.demo.config.BaseResponseStatus.*;
+import static com.example.demo.src.user.config.BaseResponseStatus.*;
 
 // Service Create, Update, Delete 의 로직 처리
 @Service
@@ -70,3 +70,5 @@ public class UserService {
     }
 
 }
+
+

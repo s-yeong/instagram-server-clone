@@ -1,9 +1,7 @@
 package com.example.demo.src.user;
 
 
-import com.example.demo.src.user.model.GetUserRes;
-import com.example.demo.src.user.model.PatchUserReq;
-import com.example.demo.src.user.model.PostUserReq;
+import com.example.demo.src.user.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -20,6 +18,65 @@ public class UserDao {
     public void setDataSource(DataSource dataSource){
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
+
+    // 유저 피드 조회 API - 유저 프로필 조회
+    public GetUserInfoRes selectUserInfo(int userIdx){
+        String selectUserInfoQuery = "select u.userIdx as userIdx,\n" +
+                "       u.nickName as nickName,\n" +
+                "       u.profileImgUrl as profileImgUrl,\n" +
+                "       u.name as name,\n" +
+                "       u.introduction as introduction,\n" +
+                "       u.website as website,\n" +
+                "       if(postCount is null, 0, postCount) as postCount,\n" +
+                "       if(followerCount is null, 0, followerCount) as followerCount,\n" +
+                "       if(followingCount is null, 0, followingCount) as followingCount\n" +
+                "from User as u\n" +
+                "    left join(select userIdx, count(postIdx) as postCount\n" +
+                "              from Post\n" +
+                "              where status = 'ACTIVE'\n" +
+                "              group by userIdx ) as p on p.userIdx = u.userIdx\n" +
+                "    left join(select followerIdx, count(followIdx) as followerCount\n" +
+                "              from Follow\n" +
+                "              where status = 'ACTIVE'\n" +
+                "              group by followerIdx) as fe on fe.followerIdx = u.userIdx\n" +
+                "    left join(select followeeIdx, count(followIdx) as followingCount\n" +
+                "              from Follow\n" +
+                "              where status = 'ACTIVE'\n" +
+                "              group by followeeIdx) as fi on fi.followeeIdx = u.userIdx\n" +
+                "where u.userIdx=? and u.status = 'ACTIVE';";
+        int selectUserInfoParams = userIdx;
+        return this.jdbcTemplate.queryForObject(selectUserInfoQuery,
+                (rs, rowNum) -> new GetUserInfoRes(
+                        rs.getInt("userIdx"),
+                        rs.getString("nickName"),
+                        rs.getString("profileImgUrl"),
+                        rs.getString("name"),
+                        rs.getString("website"),
+                        rs.getString("introduction"),
+                        rs.getInt("postCount"),
+                        rs.getInt("followerCount"),
+                        rs.getInt("followingCount")),
+                selectUserInfoParams);
+    }
+
+    // 유저 피드 조회 API - 유저 게시물 리스트 조회
+    public List<GetUserPostsRes> selectUserPosts(int userIdx){
+        String selectUserPostsQuery = "select p.postIdx as postIdx,\n" +
+                "       pi.imgUrl as postImgUrl\n" +
+                "from Post as p\n" +
+                "    join PostImgUrl as pi on pi.postIdx = p.postIdx and pi.status = 'ACTIVE'\n" +
+                "    join User as u on u.userIdx = p.userIdx\n" +
+                "where p.status ='ACTIVE' and u.userIdx=?\n" +
+                "group by p.postIdx\n" +
+                "order by p.createdAt desc;";
+        int selectUserPostsParams = userIdx;
+        return this.jdbcTemplate.query(selectUserPostsQuery,
+                (rs, rowNum) -> new GetUserPostsRes(
+                        rs.getInt("postIdx"),
+                        rs.getString("postImgUrl")),
+                selectUserPostsParams);
+    }
+
 
     public List<GetUserRes> getUsers(){
         String getUsersQuery = "select userIdx,name,nickName,email from User";
@@ -64,6 +121,15 @@ public class UserDao {
 
         String lastInserIdQuery = "select last_insert_id()";
         return this.jdbcTemplate.queryForObject(lastInserIdQuery,int.class);
+    }
+
+    public int checkUserExist(int userIdx){
+        String checkUserExistQuery = "select exists(select userIdx from User where userIdx = ?)";
+        int checkUserExistParams = userIdx;
+        return this.jdbcTemplate.queryForObject(checkUserExistQuery,
+                int.class,
+                checkUserExistParams);
+
     }
 
     public int checkEmail(String email){
